@@ -1,0 +1,62 @@
+out_dir: ./runs/bagel_codec
+max_steps: 20000
+log_every: 20
+save_every: 2000
+grad_accum: 1
+mixed_precision: bf16
+
+prompt_text: null
+
+bagel:
+  model_path: ./model_weights
+
+data:
+  root: ./data/images
+  size: 512
+  batch_size: 1
+  num_workers: 4
+
+optim:
+  lr: 1.0e-5
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+
+semantic:
+  code_dim: 256
+  codebook_size: 4096
+  beta: 0.25
+
+  use_l2_norm: false
+  use_prior: true
+flow:
+  timestep_shift: 3.0
+
+loss:
+  lambda_recon_rate: 1.0e-3
+  lambda_sem_rate: 1.0e-3
+  lambda_vq: 1.0
+
+train:
+  train_modules:
+    - vae2llm
+    - llm2vae
+    - time_embedder
+    - latent_pos_embed
+    - connector
+    - vit_pos_embed
+
+  use_lora: false
+  lora:
+    r: 8
+    alpha: 16
+    dropout: 0.0
+    patterns:
+      - "language_model\.model\.layers\..*\.self_attn\.(q_proj|k_proj|v_proj|o_proj)$"
+
+  train_vae: false
+
+recon:
+  quant_dim: 8
+  bpp_num: 6
+  q_mode: random   # random|fixed
+  q_idx: 0
